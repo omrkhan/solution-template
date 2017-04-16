@@ -2,6 +2,7 @@ package com.tigerit.exam;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import static com.tigerit.exam.IO.*;
 
 /**
@@ -29,7 +30,6 @@ class Table{
       for (int rdata=0; rdata<row; rdata++){
         setData(readLine()); // initializing data for the table
       }
-      printTable();
     }else{
       throw new IllegalArgumentException("Invalid nC nD Line Input");
     }
@@ -93,9 +93,92 @@ class ResultData{
     col_names = arra1;
     col_names.addAll(arra2);
   }
-  void printResult(){
-    System.out.println(col_names);
-    System.out.println(query_result);
+ ArrayList<Integer> printIndexSerial(){
+  ArrayList<Integer> printSeries = new ArrayList<Integer>();
+  // System.out.println("col_names_print_serial: ");
+  // System.out.println(col_names_print_serial);
+   for (String serial : col_names_print_serial){
+     int j=0;
+     for (String name : col_names){
+       if(serial.equals(name)){
+        printSeries.add(j);
+        break;
+       }
+       j++;
+     }
+   }
+   return printSeries;
+ }
+
+  String printResult(boolean flag){
+    ArrayList<String> sorts= new ArrayList<String>();
+    String str ="";
+    if (flag){
+      int i=0;
+      for(String cname : col_names){
+        if (i==0){
+          str= str+ cname;
+          i=1; 
+        }else{
+          str= str+" "+ cname;
+        }
+      }
+      str= str+"\n";
+      for(ArrayList<Integer> rd: query_result){
+        i=0;
+        String str2= "";
+        for (Integer number : rd){
+          if (i==0){
+            str2 = str2+number;
+            i=1;
+          }else{
+            str2 = str2+ " "+number;
+          }
+        }
+        sorts.add(str2);
+      }
+      
+      Collections.sort(sorts);
+      for (String fstr : sorts){
+        str= str+ fstr+ "\n";
+      }
+      return str;
+    }else{
+      ArrayList<Integer> printSeries = printIndexSerial();
+      int i=0;
+      for(String cname : col_names_print_serial){
+        if (i==0){
+          str= str+ cname;
+          i=1; 
+        }else{
+          str= str+" "+ cname;
+        }
+      }
+      str= str+"\n";
+
+      for(ArrayList<Integer> rd: query_result){
+        i=0;
+        String str2= "";
+        for (int printIndex : printSeries){
+          if (i==0){
+            str2= str2+rd.get(printIndex);
+            i=1;
+          }else{
+            str2= str2+" "+rd.get(printIndex);
+          }
+        }
+        sorts.add(str2);
+      }Collections.sort(sorts);
+      for (String fstr : sorts){
+        str= str+ fstr+ "\n";
+      }
+      return str;
+    }
+    
+    // System.out.println(col_names);
+    // System.out.println(query_result.size());
+    // System.out.println(query_result.get(0).get(1));
+    // System.out.println(query_result);
   }
   void setSerial(ArrayList<String> column_serial){
     col_names_print_serial= column_serial;
@@ -283,8 +366,8 @@ public class Solution implements Runnable {
             //Sending query for the comparison operation
             // int [][] joinResult = joinCompare(test_Tables[rhs_table_index].getRawData() , rhs_col_index , test_Tables[lhs_table_index].getRawData(), lhs_col_index);
             query_output.setData(joinCompare(test_Tables[rhs_table_index].getRawData() , rhs_col_index , t1_selected_col,  test_Tables[lhs_table_index].getRawData(), lhs_col_index , t2_selected_col, flag_all));
-            printLine(output);
-            query_output.printResult();
+            
+            output= output+ "\n"+query_output.printResult(flag_all);
             //**** end of comparison operation
             //*******************************
           }
@@ -292,7 +375,7 @@ public class Solution implements Runnable {
           throw new IllegalArgumentException("Invalid nQ Input"); 
         }
         //*************************************************************************************
-        
+        printLine(output);
         
         
         
