@@ -1,3 +1,6 @@
+//Author: Omar Hassan Khan
+//Date of Submission: 16-01-2017
+//E-Mail: omarkhan.bucse@gmail.com
 package com.tigerit.exam;
 
 import java.util.Arrays;
@@ -11,13 +14,14 @@ import static com.tigerit.exam.IO.*;
  * You may add private method inside this class but, make sure your
  * application's execution points start from inside run method.
  */
+
+//Table class is to derive the tables from user input
 class Table{
-  String tname;
-  String [] col_name;
-  int [][] tdata;
+  String tname; //table name
+  String [] col_name; // column names
+  int [][] tdata;// table data
   int row, col, lastIndex;
-  Table(){
-  }
+  Table(){}
   Table(String name, String row_col , String cname){
     String [] rc= row_col.split(" ");
     col= Integer.parseInt(rc[0]);
@@ -28,7 +32,7 @@ class Table{
       col_name = cname.split(" "); 
       tdata= new int [row][col];
       for (int rdata=0; rdata<row; rdata++){
-        setData(readLine()); // initializing data for the table
+        setData(readLine()); // getting data for the table
       }
     }else{
       throw new IllegalArgumentException("Invalid nC nD Line Input");
@@ -41,6 +45,7 @@ class Table{
   int[][] getRawData(){
     return tdata;
   }
+  //search and retrive the Column Index
   int getColIndex(String colName){
     for (int ci=0; ci<col_name.length; ci++) {
       if (colName.equals(col_name[ci])){
@@ -80,12 +85,17 @@ class Table{
   }
   
 }
+
+/* Result class is used for Query Results
+ * First I get the selected columns from individual
+ * Then the results are sorted lexicographically
+ */
 class ResultData{
-  ArrayList<ArrayList<Integer>> query_result;
-  ArrayList<String> col_names_print_serial;
-  ArrayList<String> col_names;
-
-
+  ArrayList<ArrayList<Integer>> query_result; //Raw Result
+  ArrayList<String> col_names_print_serial; // Print Serial for the raw data
+  ArrayList<String> col_names; // Column Header for the Raw Result
+  
+  
   ResultData(){
     query_result = new ArrayList<ArrayList<Integer>>();
   }
@@ -93,29 +103,35 @@ class ResultData{
     col_names = arra1;
     col_names.addAll(arra2);
   }
- ArrayList<Integer> printIndexSerial(){
-  ArrayList<Integer> printSeries = new ArrayList<Integer>();
-  // System.out.println("col_names_print_serial: ");
-  // System.out.println(col_names_print_serial);
-   for (String serial : col_names_print_serial){
-     int j=0;
-     for (String name : col_names){
-       if(serial.equals(name)){
-        printSeries.add(j);
-        break;
-       }
-       j++;
-     }
-   }
-   return printSeries;
- }
-
+  /*In this method I have compared the Print Column name With the header
+   * From this comparison I get the index of the raw data
+   * of which shoub be printed 
+   */
+  ArrayList<Integer> printIndexSerial(){
+    ArrayList<Integer> printSeries = new ArrayList<Integer>();
+    for (String serial : col_names_print_serial){
+      int j=0;
+      for (String name : col_names){
+        if(serial.equals(name)){
+          printSeries.add(j);
+          break;
+        }
+        j++;
+      }
+    }
+    return printSeries;
+  }
+  /*This method is used to print the Result
+   *For Sorting First of I have generate row strings
+   *Then called the java default Sort
+   * Flag  True = *, False= selected columns
+   */
   String printResult(boolean flag){
     ArrayList<String> sorts= new ArrayList<String>();
     String str ="";
-    if (flag){
+    if (flag){ // for * printing no comparison with print serial
       int i=0;
-      for(String cname : col_names){
+      for(String cname : col_names){ //printing column names
         if (i==0){
           str= str+ cname;
           i=1; 
@@ -124,7 +140,7 @@ class ResultData{
         }
       }
       str= str+"\n";
-      for(ArrayList<Integer> rd: query_result){
+      for(ArrayList<Integer> rd: query_result){//building column data string
         i=0;
         String str2= "";
         for (Integer number : rd){
@@ -139,14 +155,14 @@ class ResultData{
       }
       
       Collections.sort(sorts);
-      for (String fstr : sorts){
+      for (String fstr : sorts){ // sorting column data
         str= str+ fstr+ "\n";
       }
       return str;
-    }else{
+    }else{ // for selected column printing no comparison with print serial
       ArrayList<Integer> printSeries = printIndexSerial();
       int i=0;
-      for(String cname : col_names_print_serial){
+      for(String cname : col_names_print_serial){//printing column names
         if (i==0){
           str= str+ cname;
           i=1; 
@@ -155,8 +171,8 @@ class ResultData{
         }
       }
       str= str+"\n";
-
-      for(ArrayList<Integer> rd: query_result){
+      
+      for(ArrayList<Integer> rd: query_result){//building column data string
         i=0;
         String str2= "";
         for (int printIndex : printSeries){
@@ -168,7 +184,7 @@ class ResultData{
           }
         }
         sorts.add(str2);
-      }Collections.sort(sorts);
+      }Collections.sort(sorts);//sorting column data string
       for (String fstr : sorts){
         str= str+ fstr+ "\n";
       }
@@ -189,8 +205,7 @@ class ResultData{
 }
 
 public class Solution implements Runnable {
-  Table [] test_Tables;
-  
+  Table [] test_Tables;  
   String output;
   //this method is to get the table index from tables
   private int getTableIndex(String tname){
@@ -201,6 +216,9 @@ public class Solution implements Runnable {
     }
     return -1;
   }
+  /* confirming if the index in selected from the query.
+   * Used for all ata to selected data
+   */
   boolean hasSelected(int index , ArrayList<Integer> selectCol){
     for (int i: selectCol){
       if (i==index){
@@ -209,6 +227,10 @@ public class Solution implements Runnable {
     }
     return false;
   }
+  /*This method was needed because I have used ArrayList & Arrays concurrently
+   * Other purpose is Joinin Two Different INT Array into one ArrayList.
+   * Ouptput is only the selected columns
+   */
   ArrayList<Integer> castIntegerList (int [] intArray, ArrayList<Integer> firstSelectedCol , int [] intArray2, ArrayList<Integer> secondSelectedCol, boolean all){
     ArrayList<Integer> intlist = new ArrayList<Integer>();
     for (int i=0; i<intArray.length; i++){
@@ -223,6 +245,7 @@ public class Solution implements Runnable {
     }
     return intlist;
   }
+  //this method is for the query comparison.
   private ArrayList<ArrayList<Integer>> joinCompare(int [][] rhsArray, int rhsColi, ArrayList<Integer> rhsSelectedCol, int[][] lhsArray, int lhsColi, ArrayList<Integer> lhsSelectedCol, boolean all){
     ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
     for (int rhsi= 0; rhsi<rhsArray.length ; rhsi++){ //traversing the right hand for the match
@@ -232,10 +255,9 @@ public class Solution implements Runnable {
         }
       }
     }
-
-    // System.out.println(result);
     return result;
   }
+  //This method is used to convert String array to String List
   private ArrayList<String> castingStringArray(String [] strarray){
     ArrayList<String> r = new ArrayList<String>();
     for(String str : strarray){
@@ -246,23 +268,25 @@ public class Solution implements Runnable {
   
   @Override
   public void run() {
-    int t= readLineAsInteger();
+    //**********************************************Data Input Block
+    int t= readLineAsInteger(); // Number of test
     if (t>=1 && t<=10){
       for(int ti= 1; ti<= t; ti++){
         output= "Test: "+ ti;
-        int nT= readLineAsInteger();
+        int nT= readLineAsInteger(); // number of Tables
         if (nT>=2 && nT<=10){
           test_Tables=new Table[nT];
           for (int nTi=0 ; nTi<nT ; nTi++){
             String table_name= readLine();
-            String row_col= readLine();
-            String cname= readLine();
+            String row_col= readLine(); // row & column
+            String cname= readLine(); // Column Names
             test_Tables[nTi]= new Table (table_name, row_col, cname);
           }
         }else{
           throw new IllegalArgumentException("Invalid nT Input");
         }
-        //*************************************************************************************
+        
+        //*********Query Block
         int nQ = readLineAsInteger();
         if (nQ>=1 && nQ<=50){
           for (int nQi= 1; nQi<=nQ ; nQi++){
@@ -344,22 +368,22 @@ public class Solution implements Runnable {
               flag_all= true;
               query_output.setCol(castingStringArray(test_Tables[rhs_table_index].getColNames()), castingStringArray(test_Tables[lhs_table_index].getColNames()));
             }else{
-                parts= selectCol.split(",");
-                for (String columns : parts){
-                  columns= columns.trim(); 
-                  String [] col_det = columns.split("\\.");
-                  if (col_det[0].equals(rhs_table_info) || col_det[0].equals(rhs_table_alias)){
-                    t1_selected_col.add(test_Tables[rhs_table_index].getColIndex(col_det[1]));
-                    t1_selected_col_name.add(col_det[1]);
-                    column_serial.add(col_det[1]);
-                  }else if(col_det[0].equals(lhs_table_info) || col_det[0].equals(lhs_table_alias)){
-                    t2_selected_col.add(test_Tables[lhs_table_index].getColIndex(col_det[1]));
-                    t2_selected_col_name.add(col_det[1]);
-                    column_serial.add(col_det[1]);
-                  }
+              parts= selectCol.split(",");
+              for (String columns : parts){
+                columns= columns.trim(); 
+                String [] col_det = columns.split("\\.");
+                if (col_det[0].equals(rhs_table_info) || col_det[0].equals(rhs_table_alias)){
+                  t1_selected_col.add(test_Tables[rhs_table_index].getColIndex(col_det[1]));
+                  t1_selected_col_name.add(col_det[1]);
+                  column_serial.add(col_det[1]);
+                }else if(col_det[0].equals(lhs_table_info) || col_det[0].equals(lhs_table_alias)){
+                  t2_selected_col.add(test_Tables[lhs_table_index].getColIndex(col_det[1]));
+                  t2_selected_col_name.add(col_det[1]);
+                  column_serial.add(col_det[1]);
                 }
-                query_output.setCol(t1_selected_col_name , t2_selected_col_name);
-                query_output.setSerial(column_serial);
+              }
+              query_output.setCol(t1_selected_col_name , t2_selected_col_name);
+              query_output.setSerial(column_serial);
             }
             //**** end of line1 operation
             //*******************************
