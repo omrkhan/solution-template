@@ -5,9 +5,6 @@
 *.ipr
 *.class
 *.java~
-input.txt
-output.txt
-IO.java
 *.iws
 *.iml
 *.tmproj
@@ -20,3 +17,6 @@ logs
 ship
 build
 target
+input.txt
+output.txt
+tester.java

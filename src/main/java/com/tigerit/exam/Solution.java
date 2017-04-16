@@ -47,7 +47,10 @@ class Table{
         return ci;
       }
     }
-    return -1;
+    throw new IllegalArgumentException("Invalid Query"); 
+  }
+  String[] getColNames(){
+    return col_name;
   }
   void setData(String row_data){
     String [] rd= row_data.split(" ");
@@ -79,21 +82,32 @@ class Table{
 }
 class ResultData{
   ArrayList<ArrayList<Integer>> query_result;
-  ArrayList<String> col_name;
+  ArrayList<String> col_names_print_serial;
+  ArrayList<String> col_names;
+
+
   ResultData(){
     query_result = new ArrayList<ArrayList<Integer>>();
   }
-  void printList(){
+  void setCol(ArrayList<String> arra1, ArrayList<String> arra2 ){
+    col_names = arra1;
+    col_names.addAll(arra2);
+  }
+  void printResult(){
+    System.out.println(col_names);
     System.out.println(query_result);
   }
-  void addData(ArrayList<Integer> rdata){
-    query_result.add(rdata);
+  void setSerial(ArrayList<String> column_serial){
+    col_names_print_serial= column_serial;
+  }
+  void setData(ArrayList<ArrayList<Integer>> rdata){
+    query_result= rdata;
   }
 }
 
 public class Solution implements Runnable {
   Table [] test_Tables;
-  Table [] result_tables;
+  
   String output;
   //this method is to get the table index from tables
   private int getTableIndex(String tname){
@@ -104,30 +118,47 @@ public class Solution implements Runnable {
     }
     return -1;
   }
-  ArrayList<Integer> castIntegerList (int [] intArray , int [] intArray2){
-    ArrayList<Integer> intlist = new ArrayList<Integer>();
-    for (int i: intArray){
-      intlist.add(i);
+  boolean hasSelected(int index , ArrayList<Integer> selectCol){
+    for (int i: selectCol){
+      if (i==index){
+        return true;
+      }
     }
-    for (int i: intArray2){
-      intlist.add(i);
+    return false;
+  }
+  ArrayList<Integer> castIntegerList (int [] intArray, ArrayList<Integer> firstSelectedCol , int [] intArray2, ArrayList<Integer> secondSelectedCol, boolean all){
+    ArrayList<Integer> intlist = new ArrayList<Integer>();
+    for (int i=0; i<intArray.length; i++){
+      if (hasSelected(i , firstSelectedCol) || all){
+        intlist.add(intArray[i]);
+      }
+    }
+    for (int i=0; i<intArray2.length; i++){
+      if (hasSelected(i , secondSelectedCol) || all){
+        intlist.add(intArray2[i]);
+      }
     }
     return intlist;
   }
-  private ResultData joinCompare(int [][] rhsArray, int rhsColi, int[][] lhsArray, int lhsColi){
-    ResultData result = new ResultData();
+  private ArrayList<ArrayList<Integer>> joinCompare(int [][] rhsArray, int rhsColi, ArrayList<Integer> rhsSelectedCol, int[][] lhsArray, int lhsColi, ArrayList<Integer> lhsSelectedCol, boolean all){
+    ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
     for (int rhsi= 0; rhsi<rhsArray.length ; rhsi++){ //traversing the right hand for the match
       for(int lhsi=0; lhsi<lhsArray.length ; lhsi++){
         if (rhsArray[rhsi][rhsColi]==lhsArray[lhsi][lhsColi]){
-          result.addData(castIntegerList(rhsArray[rhsi] , lhsArray[lhsi]));
-          // printLine(Arrays.toString(rhsArray[rhsi]));
-          // printLine(Arrays.toString(lhsArray[lhsi]));
-
+          result.add(castIntegerList(rhsArray[rhsi], rhsSelectedCol , lhsArray[lhsi], lhsSelectedCol, all));
         }
       }
     }
-    result.printList();
+
+    // System.out.println(result);
     return result;
+  }
+  private ArrayList<String> castingStringArray(String [] strarray){
+    ArrayList<String> r = new ArrayList<String>();
+    for(String str : strarray){
+      r.add(str);
+    }
+    return r;
   }
   
   @Override
@@ -151,8 +182,8 @@ public class Solution implements Runnable {
         //*************************************************************************************
         int nQ = readLineAsInteger();
         if (nQ>=1 && nQ<=50){
-          result_tables=new Table[nQ];
           for (int nQi= 1; nQi<=nQ ; nQi++){
+            ResultData query_output = new ResultData();
             String line1= readLine();
             String line2= readLine();
             String line3= readLine();
@@ -187,39 +218,73 @@ public class Solution implements Runnable {
             parts = rhs.split("\\."); //breaking the rhs for two parts
             String rhs_table_info = parts[0];
             String rhs_table_col_info = parts[1];
+            String rhs_table_alias = "";
             int rhs_table_index = -1;
             if(rhs_table_info.equals(from_table_name) || rhs_table_info.equals(from_table_alias)){
               rhs_table_index= from_table_index;
+              rhs_table_alias= from_table_alias;
             }else if(rhs_table_info.equals(join_table_name) || rhs_table_info.equals(join_table_alias)){
               rhs_table_index= join_table_index;
+              rhs_table_alias= join_table_alias;
             }else{
               throw new IllegalArgumentException("Invalid Query"); 
             }
             int rhs_col_index = test_Tables[rhs_table_index].getColIndex(rhs_table_col_info);
-            if (rhs_col_index== -1){
-              throw new IllegalArgumentException("Invalid Query"); 
-            }//end of rhs operation
+            //end of rhs operation
             parts = lhs.split("\\."); //breaking the lhs for two parts
             String lhs_table_info = parts[0];
             String lhs_table_col_info = parts[1];
+            String lhs_table_alias = "";
             int lhs_table_index= -1;
             if(lhs_table_info.equals(from_table_name) || lhs_table_info.equals(from_table_alias) && !(lhs_table_info.equals(rhs_table_info))){
               lhs_table_index= from_table_index;
+              lhs_table_alias= from_table_alias;
             }else if (lhs_table_info.equals(join_table_name) || lhs_table_info.equals(join_table_alias) && !(lhs_table_info.equals(rhs_table_info))){
               lhs_table_index= join_table_index;
+              lhs_table_alias= join_table_alias;
             }else{
               throw new IllegalArgumentException("Invalid Query"); 
             }
             int lhs_col_index = test_Tables[lhs_table_index].getColIndex(lhs_table_col_info);
-            if (lhs_col_index== -1){
-              throw new IllegalArgumentException("Invalid Query"); 
-            }//end of lhs operation
+            //end of lhs operation
             //**** end of line4 operation
             //*******************************
             //getting column information for line 1
+            boolean flag_all = false;
+            ArrayList<String>  column_serial = new ArrayList<String>();
+            ArrayList<Integer> t1_selected_col = new ArrayList<Integer>();
+            ArrayList<String>  t1_selected_col_name = new ArrayList<String>();
+            ArrayList<Integer> t2_selected_col = new ArrayList<Integer>();
+            ArrayList<String>  t2_selected_col_name = new ArrayList<String>();
+            String selectCol = line1.substring(7);
+            if (selectCol.equals("*")){
+              flag_all= true;
+              query_output.setCol(castingStringArray(test_Tables[rhs_table_index].getColNames()), castingStringArray(test_Tables[lhs_table_index].getColNames()));
+            }else{
+                parts= selectCol.split(",");
+                for (String columns : parts){
+                  columns= columns.trim(); 
+                  String [] col_det = columns.split("\\.");
+                  if (col_det[0].equals(rhs_table_info) || col_det[0].equals(rhs_table_alias)){
+                    t1_selected_col.add(test_Tables[rhs_table_index].getColIndex(col_det[1]));
+                    t1_selected_col_name.add(col_det[1]);
+                    column_serial.add(col_det[1]);
+                  }else if(col_det[0].equals(lhs_table_info) || col_det[0].equals(lhs_table_alias)){
+                    t2_selected_col.add(test_Tables[lhs_table_index].getColIndex(col_det[1]));
+                    t2_selected_col_name.add(col_det[1]);
+                    column_serial.add(col_det[1]);
+                  }
+                }
+                query_output.setCol(t1_selected_col_name , t2_selected_col_name);
+                query_output.setSerial(column_serial);
+            }
+            //**** end of line1 operation
+            //*******************************
             //Sending query for the comparison operation
             // int [][] joinResult = joinCompare(test_Tables[rhs_table_index].getRawData() , rhs_col_index , test_Tables[lhs_table_index].getRawData(), lhs_col_index);
-            joinCompare(test_Tables[rhs_table_index].getRawData() , rhs_col_index , test_Tables[lhs_table_index].getRawData(), lhs_col_index);
+            query_output.setData(joinCompare(test_Tables[rhs_table_index].getRawData() , rhs_col_index , t1_selected_col,  test_Tables[lhs_table_index].getRawData(), lhs_col_index , t2_selected_col, flag_all));
+            printLine(output);
+            query_output.printResult();
             //**** end of comparison operation
             //*******************************
           }
@@ -230,7 +295,7 @@ public class Solution implements Runnable {
         
         
         
-        printLine(output);
+        
       }
     }else{
       throw new IllegalArgumentException("Invalid t Input");
