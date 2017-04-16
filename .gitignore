@@ -3,6 +3,11 @@
 ,*
 +*
 *.ipr
+*.class
+*.java~
+input.txt
+output.txt
+IO.java
 *.iws
 *.iml
 *.tmproj

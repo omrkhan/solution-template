@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
  * System.console() stuff for input.
  */
 public class IO {
-
     private static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     private IO() {}
